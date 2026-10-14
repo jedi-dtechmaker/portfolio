@@ -183,8 +183,27 @@ export default function GitHubActivity({ githubData, loading, onRefresh }) {
             <div className="event-timeline">
               {events.length > 0 ? (
                 events.slice(0, 5).map((ev, i) => {
-                  const repoName = ev.repo?.name ? ev.repo.name.replace('jedi-dtechmaker/', '') : 'repository';
-                  const commitMsg = ev.payload?.commits?.[0]?.message;
+                  const repoName = ev.repo?.name ? ev.repo.name.replace(/^[^/]+\//, '') : 'repository';
+                  let actionText = 'pushed to';
+                  let commitMsg = ev.payload?.commits?.[0]?.message;
+
+                  if (ev.type === 'PushEvent') {
+                    const branch = ev.payload?.ref ? ev.payload.ref.replace('refs/heads/', '') : 'main';
+                    actionText = `pushed to [${branch}]`;
+                    if (!commitMsg) {
+                      const hash = ev.payload?.head ? ev.payload.head.substring(0, 7) : (ev.id ? ev.id.substring(0, 7) : 'head');
+                      commitMsg = `commit ${hash}: updates & sync in ${repoName}`;
+                    }
+                  } else if (ev.type === 'CreateEvent') {
+                    actionText = `created ${ev.payload?.ref_type || 'branch'} in`;
+                    commitMsg = ev.payload?.ref ? `target: ${ev.payload.ref}` : 'repository initialized';
+                  } else if (ev.type === 'WatchEvent') {
+                    actionText = 'starred';
+                    commitMsg = 'star telemetry synced';
+                  } else {
+                    actionText = 'activity in';
+                    commitMsg = ev.type.replace('Event', '');
+                  }
 
                   return (
                     <div key={ev.id || i} className="event-item">
@@ -193,12 +212,12 @@ export default function GitHubActivity({ githubData, loading, onRefresh }) {
                       </div>
                       <div style={{ flexGrow: 1 }}>
                         <div className="event-desc">
-                          <span>pushed to </span>
+                          <span>{actionText} </span>
                           <span className="event-repo">{repoName}</span>
                         </div>
                         {commitMsg && (
                           <span className="event-commit-msg">
-                            &gt; {commitMsg.length > 60 ? commitMsg.substring(0, 60) + '...' : commitMsg}
+                            &gt; {commitMsg.length > 80 ? commitMsg.substring(0, 80) + '...' : commitMsg}
                           </span>
                         )}
                         <span className="event-time">{formatRelativeTime(ev.created_at)}</span>
@@ -223,7 +242,7 @@ export default function GitHubActivity({ githubData, loading, onRefresh }) {
 
             <div className="lang-bars">
               {stats?.languages && stats.languages.length > 0 ? (
-                stats.languages.slice(0, 5).map((lang, idx) => (
+                stats.languages.slice(0, 8).map((lang, idx) => (
                   <div key={idx} className="lang-row">
                     <div className="lang-info">
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>

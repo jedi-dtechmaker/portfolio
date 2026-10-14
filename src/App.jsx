@@ -16,16 +16,7 @@ export default function App() {
     repos: FALLBACK_DATA.repos,
     allRepos: FALLBACK_DATA.repos,
     events: FALLBACK_DATA.events,
-    stats: {
-      publicRepos: 12,
-      totalStars: 17,
-      totalForks: 2,
-      languages: [
-        { name: "TypeScript", count: 2, percent: 40, color: "#3178c6" },
-        { name: "JavaScript", count: 3, percent: 40, color: "#f7df1e" },
-        { name: "Python", count: 1, percent: 20, color: "#3572A5" }
-      ]
-    },
+    stats: FALLBACK_DATA.stats,
     isCached: false,
     lastFetched: Date.now()
   });
