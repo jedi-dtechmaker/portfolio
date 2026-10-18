@@ -8,9 +8,9 @@ import ContactSection from './components/ContactSection';
 import { ContactModal, ResumeModal } from './components/ContactModal';
 import { fetchGitHubData, FALLBACK_DATA } from './services/github';
 import { PROFILE } from './data/portfolioData';
-import { Terminal, Heart, Code2 } from 'lucide-react';
 
 export default function App() {
+  const isProjectsPage = window.location.pathname.replace(/\/$/, '') === '/projects';
   const [githubData, setGithubData] = useState({
     profile: FALLBACK_DATA.profile,
     repos: FALLBACK_DATA.repos,
@@ -44,7 +44,7 @@ export default function App() {
 
     // Track scroll position for active section
     const handleScroll = () => {
-      const sections = ['hero', 'projects', 'activity', 'gears', 'contact'];
+      const sections = ['hero', 'activity', 'gears', 'contact'];
       const scrollPos = window.scrollY + 200;
 
       for (const section of sections) {
@@ -64,37 +64,44 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    document.title = isProjectsPage
+      ? 'Projects | jedi'
+      : 'jedi | Full-Stack Developer & Builder';
+  }, [isProjectsPage]);
+
+  useEffect(() => {
+    if (!isProjectsPage && window.location.hash) {
+      document.getElementById(window.location.hash.slice(1))?.scrollIntoView();
+    }
+  }, [isProjectsPage]);
+
   return (
     <div className="portfolio-app">
       {/* Top Navbar */}
       <Header 
-        activeSection={activeSection} 
-        onOpenContact={() => setContactOpen(true)} 
+        activeSection={isProjectsPage ? 'projects' : activeSection}
       />
 
-      {/* Hero Section matching exact sample */}
-      <Hero 
-        onOpenContact={() => setContactOpen(true)}
-        onOpenResume={() => setResumeOpen(true)}
-      />
-
-      {/* Projects Section */}
-      <Projects 
-        repos={githubData.repos} 
-      />
-
-      {/* GitHub Automated Activity Pulse */}
-      <GitHubActivity 
-        githubData={githubData}
-        loading={loading}
-        onRefresh={() => loadGitHub(true)}
-      />
-
-      {/* Gears & Workstation Setup */}
-      <Gears />
-
-      {/* Working Contact Section before Footer */}
-      <ContactSection />
+      {isProjectsPage ? (
+        <main>
+          <Projects repos={githubData.repos} />
+        </main>
+      ) : (
+        <main>
+          <Hero
+            onOpenContact={() => setContactOpen(true)}
+            onOpenResume={() => setResumeOpen(true)}
+          />
+          <GitHubActivity
+            githubData={githubData}
+            loading={loading}
+            onRefresh={() => loadGitHub(true)}
+          />
+          <Gears />
+          <ContactSection />
+        </main>
+      )}
 
       {/* Footer */}
       <footer className="site-footer">

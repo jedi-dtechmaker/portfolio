@@ -1009,6 +1009,243 @@ button {
 /* =========================================
    PROJECTS SECTION
    ========================================= */
+.projects-page {
+  min-height: calc(100vh - 180px);
+  padding-top: 3.5rem;
+}
+
+.projects-page-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.projects-page-intro {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-top: 0.55rem;
+}
+
+.projects-showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2.25rem 1.5rem;
+}
+
+.showcase-item {
+  min-width: 0;
+}
+
+.showcase-preview {
+  position: relative;
+  aspect-ratio: 1.55;
+  overflow: hidden;
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius-md);
+  background: #101613;
+}
+
+.showcase-browser-bar {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0 0.8rem;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-size: 0.68rem;
+}
+
+.showcase-browser-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.showcase-browser-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border-active);
+}
+
+.showcase-browser-dots i:first-child { background: var(--accent-red); }
+.showcase-browser-dots i:nth-child(2) { background: var(--accent-amber); }
+.showcase-browser-dots i:last-child { background: var(--accent-green); }
+
+.showcase-browser-url {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.showcase-screen {
+  position: relative;
+  height: calc(100% - 32px);
+  overflow: hidden;
+}
+
+.showcase-preview-fallback,
+.showcase-source-preview {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  background: linear-gradient(135deg, #151d18, #14191d);
+}
+
+.showcase-screen iframe {
+  position: absolute;
+  inset: 0;
+  width: 250%;
+  height: 250%;
+  border: 0;
+  background: transparent;
+  pointer-events: none;
+  transform: scale(0.4);
+  transform-origin: top left;
+}
+
+.showcase-preview-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.showcase-preview:hover {
+  border-color: var(--accent-green);
+}
+
+.showcase-details {
+  padding: 1rem 0.15rem 0;
+}
+
+.showcase-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.showcase-title-row h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+
+.showcase-language {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+
+.showcase-details p {
+  min-height: 2.7em;
+  margin-top: 0.45rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.showcase-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 0.9rem;
+  font-size: 0.78rem;
+}
+
+.showcase-actions a,
+.projects-github-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.showcase-action-primary { color: var(--accent-green-bright); }
+.showcase-action-secondary { color: var(--text-secondary); }
+.showcase-actions a:hover,
+.projects-github-link:hover { color: var(--text-primary); }
+
+.projects-github-link {
+  margin-top: 2.75rem;
+  color: var(--accent-cyan);
+  font-size: 0.83rem;
+}
+
+.projects-empty {
+  color: var(--text-muted);
+  padding: 3rem 0;
+}
+
+.projects-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.projects-toolbar .projects-filter-bar {
+  margin-bottom: 0;
+}
+
+.projects-search {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 270px;
+  min-width: 0;
+  padding: 0 0.65rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: #111513;
+  color: var(--text-muted);
+}
+
+.projects-search:focus-within {
+  border-color: var(--accent-green);
+  color: var(--accent-green-bright);
+}
+
+.projects-search input {
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.78rem;
+}
+
+.projects-search input::placeholder { color: var(--text-muted); }
+.projects-search input::-webkit-search-cancel-button { display: none; }
+.projects-search button { display: flex; align-items: center; color: var(--text-muted); }
+.projects-search button:hover { color: var(--text-primary); }
+
+@media (max-width: 768px) {
+  .projects-page { padding-top: 2rem; }
+  .projects-page-heading { align-items: flex-start; flex-direction: column; gap: 0.5rem; }
+  .projects-showcase-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .showcase-preview { aspect-ratio: 1.45; }
+  .projects-toolbar { align-items: stretch; flex-direction: column-reverse; }
+  .projects-search { width: 100%; }
+}
+
 .projects-filter-bar {
   display: flex;
   gap: 0.5rem;

@@ -1,180 +1,168 @@
-import React, { useState } from 'react';
-import { ExternalLink, Star, GitFork, Folder } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { ArrowUpRight, ExternalLink, FolderGit2, Monitor, Code2, Search, X } from 'lucide-react';
 import { GithubIcon } from './Icons';
 import { PROFILE } from '../data/portfolioData';
-import { LANGUAGE_COLORS } from '../services/github';
+import { FALLBACK_DATA, LANGUAGE_COLORS } from '../services/github';
 
-// Custom descriptions for projects that might have empty GitHub descriptions
 const REPO_DESCRIPTIONS = {
-  "Vora-3d-Marketplace": "Next-generation immersive 3D digital asset marketplace built with Three.js, React, and TypeScript.",
-  "Rivet": "High-performance developer workspace and web interface with modular design.",
-  "Jedi-Auto-Hustle-Agent": "Autonomous multi-step task execution agent built in Python for scheduling and intelligent workflow automation.",
-  "arcflow": "State-driven interactive workflow orchestrator and reactive interface.",
-  "jedi-tele-mention-bot": "Telegram automated mention and broadcast management bot with real-time logging.",
-  "home-protocol": "Decentralized protocol and Web3 architecture for property management and community ownership.",
-  "Ton-Gecko": "Dynamic Web3 platform on TON blockchain with interactive assets and decentralized functionality.",
-  "Pride-DAO": "Decentralized autonomous organization platform focused on community governance and voting in Web3.",
-  "event-manager": "Full-stack event scheduling and notification engine.",
-  "chat-automator": "Automated conversational agent with scriptable response pipelines."
+  'Vora-3d-Marketplace': 'Immersive 3D digital asset marketplace built with Three.js, React, and TypeScript.',
+  Rivet: 'Developer workspace and web interface with a modular design.',
+  'Jedi-Auto-Hustle-Agent': 'Task execution agent for scheduling and workflow automation.',
+  arcflow: 'Interactive workflow interface with reactive state management.',
+  'jedi-tele-mention-bot': 'Telegram mention and broadcast management bot.',
+  'home-protocol': 'Web3 property management and community ownership platform.'
 };
+
+const knownHomepages = Object.fromEntries(
+  FALLBACK_DATA.repos.filter(repo => repo.homepage).map(repo => [repo.name.toLowerCase(), repo.homepage])
+);
+
+function liveUrl(repo, deployments) {
+  const candidate = repo.homepage || deployments.byRepoId[String(repo.id)] ||
+    deployments.byRepoName[repo.name.toLowerCase()] || knownHomepages[repo.name.toLowerCase()];
+  try {
+    const url = new URL(candidate);
+    return ['https:', 'http:'].includes(url.protocol) ? url.href : null;
+  } catch {
+    return null;
+  }
+}
 
 export default function Projects({ repos = [] }) {
   const [filter, setFilter] = useState('all');
+  const [query, setQuery] = useState('');
+  const [deployments, setDeployments] = useState({ byRepoId: {}, byRepoName: {} });
 
-  // Filter repos based on selected category
-  const filteredRepos = repos.filter(repo => {
-    if (filter === 'all') return true;
-    if (filter === 'featured') return PROFILE.featuredRepos.includes(repo.name);
-    if (filter === 'typescript') return repo.language === 'TypeScript';
-    if (filter === 'javascript') return repo.language === 'JavaScript';
-    if (filter === 'python') return repo.language === 'Python';
-    return true;
-  });
+  useEffect(() => {
+    if (import.meta.env.DEV) return;
+    const controller = new AbortController();
+    fetch('/api/projects', { signal: controller.signal })
+      .then(response => response.ok ? response.json() : null)
+      .then(data => {
+        if (data?.byRepoId && data?.byRepoName) setDeployments(data);
+      })
+      .catch(error => {
+        if (error.name !== 'AbortError') console.warn('Vercel projects unavailable:', error);
+      });
+    return () => controller.abort();
+  }, []);
+
+  const projects = repos
+    .filter(repo => repo.name?.toLowerCase() !== 'portfolio')
+    .map(repo => ({ ...repo, liveUrl: liveUrl(repo, deployments) }));
+  const liveCount = projects.filter(repo => repo.liveUrl).length;
+  const search = query.trim().toLowerCase();
+  const visible = projects.filter(repo => {
+    const matchesFilter = filter === 'live' ? Boolean(repo.liveUrl)
+      : filter === 'source' ? !repo.liveUrl : true;
+    const searchable = [repo.name, repo.description, repo.language, ...(repo.topics || [])]
+      .filter(Boolean).join(' ').toLowerCase();
+    return matchesFilter && searchable.includes(search);
+  }).sort((a, b) => Number(Boolean(b.liveUrl)) - Number(Boolean(a.liveUrl)));
 
   return (
-    <section id="projects" className="section">
+    <section id="projects" className="section projects-page">
       <div className="container">
-        <div className="section-title-wrap">
+        <div className="projects-page-heading">
           <div>
-            <div className="whoami-tag">~ artifacts</div>
-            <h2 className="section-title">
-              <span className="section-prefix">#</span>
-              <span>featured repositories & builds</span>
-            </h2>
+            <div className="whoami-tag">~ /projects</div>
+            <h1 className="section-title"><span className="section-prefix">#</span> projects</h1>
+            <p className="projects-page-intro">Explore the live interfaces and code behind my work.</p>
           </div>
-          <span className="section-subtitle">
-            {filteredRepos.length} repositories displayed
-          </span>
+          <span className="section-subtitle">{liveCount} live builds / {projects.length} projects</span>
         </div>
 
-        {/* Filter Bar */}
-        <div className="projects-filter-bar">
-          <button
-            onClick={() => setFilter('all')}
-            className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-          >
-            all ({repos.length})
-          </button>
-          <button
-            onClick={() => setFilter('featured')}
-            className={`filter-btn ${filter === 'featured' ? 'active' : ''}`}
-          >
-            ★ featured
-          </button>
-          <button
-            onClick={() => setFilter('typescript')}
-            className={`filter-btn ${filter === 'typescript' ? 'active' : ''}`}
-          >
-            TypeScript
-          </button>
-          <button
-            onClick={() => setFilter('javascript')}
-            className={`filter-btn ${filter === 'javascript' ? 'active' : ''}`}
-          >
-            JavaScript
-          </button>
-          <button
-            onClick={() => setFilter('python')}
-            className={`filter-btn ${filter === 'python' ? 'active' : ''}`}
-          >
-            Python
-          </button>
+        <div className="projects-toolbar">
+          <div className="projects-filter-bar" aria-label="Project filter">
+            {[
+              ['all', `all (${projects.length})`],
+              ['live', `live sites (${liveCount})`],
+              ['source', `source only (${projects.length - liveCount})`]
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setFilter(value)}
+                className={`filter-btn ${filter === value ? 'active' : ''}`}
+                aria-pressed={filter === value}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="projects-search">
+            <Search size={16} aria-hidden="true" />
+            <input
+              type="search"
+              value={query}
+              onChange={event => setQuery(event.target.value)}
+              placeholder="Search projects"
+              aria-label="Search projects"
+            />
+            {query && <button type="button" onClick={() => setQuery('')} aria-label="Clear search" title="Clear search"><X size={15} /></button>}
+          </div>
         </div>
 
-        {/* Repositories Grid */}
-        <div className="projects-grid">
-          {filteredRepos.map(repo => {
-            const description = repo.description || REPO_DESCRIPTIONS[repo.name] || 'Open source software and engineering project.';
-            const langColor = LANGUAGE_COLORS[repo.language] || '#98c379';
-
-            return (
-              <div key={repo.id} className="project-card">
-                <div>
-                  <div className="project-header">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Folder size={17} color="var(--accent-green)" />
-                      <h3 className="project-name">{repo.name}</h3>
+        <div className="projects-showcase-grid">
+          {visible.map(repo => (
+            <article key={repo.id} className="showcase-item">
+              <div className="showcase-preview">
+                {repo.liveUrl ? (
+                  <>
+                    <div className="showcase-browser-bar" aria-hidden="true">
+                      <span className="showcase-browser-dots"><i /><i /><i /></span>
+                      <span className="showcase-browser-url">{new URL(repo.liveUrl).hostname}</span>
+                      <ArrowUpRight size={14} />
                     </div>
-                    <div className="project-links">
-                      {repo.homepage && (
-                        <a 
-                          href={repo.homepage}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="project-icon-link"
-                          title="Live Demo"
-                        >
-                          <ExternalLink size={16} />
-                        </a>
-                      )}
-                      <a 
-                        href={repo.html_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="project-icon-link"
-                        title="GitHub Repository"
-                      >
-                        <GithubIcon size={16} />
-                      </a>
+                    <div className="showcase-screen">
+                      <div className="showcase-preview-fallback"><Monitor size={28} /><span>live preview</span></div>
+                      <iframe
+                        src={repo.liveUrl}
+                        title={`${repo.name} live frontend preview`}
+                        loading="lazy"
+                        tabIndex={-1}
+                        referrerPolicy="no-referrer"
+                      />
                     </div>
+                    <a className="showcase-preview-link" href={repo.liveUrl} target="_blank" rel="noopener noreferrer" aria-label={`Open ${repo.name} live site`} />
+                  </>
+                ) : (
+                  <div className="showcase-source-preview">
+                    <Code2 size={32} />
+                    <span>source code</span>
                   </div>
+                )}
+              </div>
 
-                  <p className="project-desc" style={{ marginTop: '0.85rem' }}>
-                    {description}
-                  </p>
+              <div className="showcase-details">
+                <div className="showcase-title-row">
+                  <h2>{repo.name}</h2>
+                  <span className="showcase-language">
+                    <span className="lang-dot" style={{ backgroundColor: LANGUAGE_COLORS[repo.language] || '#98c379' }} />
+                    {repo.language || 'Codebase'}
+                  </span>
                 </div>
-
-                <div className="project-footer">
-                  <div className="project-lang">
-                    {repo.language ? (
-                      <>
-                        <span 
-                          className="lang-dot" 
-                          style={{ backgroundColor: langColor }} 
-                        />
-                        <span>{repo.language}</span>
-                      </>
-                    ) : (
-                      <span>Codebase</span>
-                    )}
-                  </div>
-
-                  <div className="project-meta">
-                    <span className="meta-item" title="Stars">
-                      <Star size={13} />
-                      <span>{repo.stargazers_count || 0}</span>
-                    </span>
-                    <span className="meta-item" title="Forks">
-                      <GitFork size={13} />
-                      <span>{repo.forks_count || 0}</span>
-                    </span>
-                  </div>
+                <p>{repo.description || REPO_DESCRIPTIONS[repo.name] || 'Open source software and engineering project.'}</p>
+                <div className="showcase-actions">
+                  {repo.liveUrl && (
+                    <a href={repo.liveUrl} target="_blank" rel="noopener noreferrer" className="showcase-action-primary">
+                      <ExternalLink size={16} /> Visit site
+                    </a>
+                  )}
+                  <a href={repo.html_url} target="_blank" rel="noopener noreferrer" className="showcase-action-secondary">
+                    <GithubIcon size={16} /> View code
+                  </a>
                 </div>
               </div>
-            );
-          })}
+            </article>
+          ))}
         </div>
 
-        {/* View Full Repositories on GitHub CTA */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2.5rem' }}>
-          <a
-            href={`https://github.com/${PROFILE.handle}?tab=repositories`}
-            target="_blank"
-            rel="noreferrer"
-            className="btn btn-secondary"
-            style={{ 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              gap: '0.65rem', 
-              padding: '0.65rem 1.4rem',
-              fontSize: '0.85rem'
-            }}
-          >
-            <GithubIcon size={18} />
-            <span>view all repositories on github</span>
-            <ExternalLink size={14} />
-          </a>
-        </div>
+        {visible.length === 0 && <p className="projects-empty">No projects match your search.</p>}
+
+        <a className="projects-github-link" href={`https://github.com/${PROFILE.handle}?tab=repositories`} target="_blank" rel="noopener noreferrer">
+          <FolderGit2 size={17} /> All repositories on GitHub <ArrowUpRight size={15} />
+        </a>
       </div>
     </section>
   );

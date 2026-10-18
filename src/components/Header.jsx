@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, FolderGit2, Activity, Cpu, Mail } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { PROFILE } from '../data/portfolioData';
 
-export default function Header({ activeSection, onOpenContact }) {
+export default function Header({ activeSection }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const onProjectsPage = activeSection === 'projects';
+  const homeAnchor = (section) => onProjectsPage ? `/#${section}` : `#${section}`;
 
   // Close mobile menu on resize to desktop
   useEffect(() => {
@@ -23,6 +25,7 @@ export default function Header({ activeSection, onOpenContact }) {
     } else {
       document.body.style.overflow = 'unset';
     }
+    return () => { document.body.style.overflow = 'unset'; };
   }, [mobileMenuOpen]);
 
   const handleNavClick = () => {
@@ -32,7 +35,7 @@ export default function Header({ activeSection, onOpenContact }) {
   return (
     <header className="site-header">
       <div className="container header-inner">
-        <a href="#hero" className="brand-link" onClick={handleNavClick} title={PROFILE.name}>
+        <a href={homeAnchor('hero')} className="brand-link" onClick={handleNavClick} title={PROFILE.name}>
           <img src="/logo.svg" alt={PROFILE.name} className="brand-logo" />
           <span className="brand-cursor"></span>
         </a>
@@ -42,7 +45,7 @@ export default function Header({ activeSection, onOpenContact }) {
           <ul className="nav-links">
             <li>
               <a 
-                href="#projects" 
+                href="/projects"
                 className={`nav-link ${activeSection === 'projects' ? 'active' : ''}`}
               >
                 projects
@@ -50,7 +53,7 @@ export default function Header({ activeSection, onOpenContact }) {
             </li>
             <li>
               <a 
-                href="#activity" 
+                href={homeAnchor('activity')}
                 className={`nav-link ${activeSection === 'activity' ? 'active' : ''}`}
               >
                 activity
@@ -58,7 +61,7 @@ export default function Header({ activeSection, onOpenContact }) {
             </li>
             <li>
               <a 
-                href="#gears" 
+                href={homeAnchor('gears')}
                 className={`nav-link ${activeSection === 'gears' ? 'active' : ''}`}
               >
                 gears
@@ -66,7 +69,7 @@ export default function Header({ activeSection, onOpenContact }) {
             </li>
             <li>
               <a 
-                href="#contact"
+                href={homeAnchor('contact')}
                 className={`nav-link ${activeSection === 'contact' ? 'active' : ''}`}
               >
                 contact
@@ -106,7 +109,7 @@ export default function Header({ activeSection, onOpenContact }) {
           <ul className="mobile-nav-links">
             <li>
               <a 
-                href="#projects" 
+                href="/projects"
                 onClick={handleNavClick}
                 className={`mobile-nav-link ${activeSection === 'projects' ? 'active' : ''}`}
               >
@@ -116,7 +119,7 @@ export default function Header({ activeSection, onOpenContact }) {
             </li>
             <li>
               <a 
-                href="#activity" 
+                href={homeAnchor('activity')}
                 onClick={handleNavClick}
                 className={`mobile-nav-link ${activeSection === 'activity' ? 'active' : ''}`}
               >
@@ -126,7 +129,7 @@ export default function Header({ activeSection, onOpenContact }) {
             </li>
             <li>
               <a 
-                href="#gears" 
+                href={homeAnchor('gears')}
                 onClick={handleNavClick}
                 className={`mobile-nav-link ${activeSection === 'gears' ? 'active' : ''}`}
               >
@@ -136,7 +139,7 @@ export default function Header({ activeSection, onOpenContact }) {
             </li>
             <li>
               <a 
-                href="#contact" 
+                href={homeAnchor('contact')}
                 onClick={handleNavClick}
                 className={`mobile-nav-link ${activeSection === 'contact' ? 'active' : ''}`}
               >

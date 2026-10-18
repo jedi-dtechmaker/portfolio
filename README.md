@@ -1,5 +1,11 @@
 # React + Vite
 
+## Automatic projects
+
+The Projects page reads public repositories from `jedi-dtechmaker` on GitHub. New repos appear after the 15-minute GitHub cache expires. Search covers each repo's name, description, language, and topics.
+
+Live site URLs come from the repository's GitHub Website field. To also discover production sites directly from linked Vercel projects, set `VERCEL_TOKEN` in this portfolio's Vercel environment variables and redeploy once. If the projects belong to a Vercel team, also set `VERCEL_TEAM_ID`. The token is only used by the server-side `/api/projects` function; it is never sent to the browser. Vercel results are cached for 15 minutes. Without the token, GitHub Website links still work.
+
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
 Currently, two official plugins are available:
