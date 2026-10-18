@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import handler, { mapVercelProjects } from '../api/projects.js';
+import netlifyHandler from '../netlify/functions/projects.js';
 
 const readyProject = (repo, repoId, url) => ({
   link: { type: 'github', repo, repoId },
@@ -76,6 +77,20 @@ test('server function returns an empty lookup when no token is configured', asyn
     await handler({ method: 'GET' }, response);
     assert.equal(response.statusCode, 200);
     assert.deepEqual(response.body, { byRepoId: {}, byRepoName: {} });
+  } finally {
+    if (originalToken !== undefined) process.env.VERCEL_TOKEN = originalToken;
+  }
+});
+
+test('Netlify function serves the same JSON response without a token', async () => {
+  const originalToken = process.env.VERCEL_TOKEN;
+  delete process.env.VERCEL_TOKEN;
+
+  try {
+    const response = await netlifyHandler(new Request('https://example.com/api/projects'));
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('content-type'), 'application/json');
+    assert.deepEqual(await response.json(), { byRepoId: {}, byRepoName: {} });
   } finally {
     if (originalToken !== undefined) process.env.VERCEL_TOKEN = originalToken;
   }
